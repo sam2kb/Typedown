@@ -85,13 +85,25 @@ sequenceDiagram
 | 页面 → 宿主事件 | 查找 | `FindState`（查找栏的位置：`{ total, index }`，每次搜索、跳转、编辑后）, `FindResults`（结果列表开着时：`{ version, total, index, capped, entries: [{ text, start, end }] }`，最多 500 条，services/findResults.ts） |
 | 页面 → 宿主命令 | 系统动作 | `OpenURI`, `PasteRequested`（浏览器自己的粘贴被页面拦下，交给宿主的粘贴） |
 | 页面 → 宿主 invoke | 初始化和系统服务 | `ContentLoaded`, `GetSettings`, `GetCurrentTheme`, `GetStringResources`, `SetClipboard`, `OpenNewWindow`, `UnhandledException` |
-| 页面 → 宿主 invoke | 导入导出工具 | `ExportCallback`, `PrintHTML`, `ResizeTable` |
+| 页面 → 宿主 invoke | 导入导出工具 | `ExportCallback`, `PrintHTML`, `ResizeTable`, `GetPlantUmlPng` |
 | 宿主 → 页面 | 文档和模式 | `LoadFile`, `SetMarkdown`, `FlushContent`, `SettingsChanged`, `RestoreScroll` |
 | 宿主 → 页面 | 编辑命令 | `Copy`, `Cut`, `Paste`, `SelectAll`, `DeleteSelection`, `Format`, `InsertTable`, `InsertImage`, `ReplaceImage` |
 | 宿主 → 页面 | 查找和导航 | `Search`, `Find`, `Replace`, `SearchOpenChange`, `FindResultsOpen`（侧栏的结果列表开/关：`{ open }`）, `FindActivate`（选中列表里的一条：`{ index, version }`）, `ScrollTo`, `OnScroll` |
 | 宿主 → 页面 | 环境变化 | `ThemeChanged`, `LanguageChanged`, `Export`, `ImportFile` |
 
 表格列出协议入口，具体 payload 以两端类型和处理器为准。`services/remote/common.ts` 中的 `LoadImage` 当前没有调用点和宿主处理器，不应作为可用协议使用；若恢复，必须同时实现并测试两端。
+
+`GetPlantUmlPng` 接受一个 URL 字符串，返回 PNG 的 Base64 字符串或 `null`。只有打开 PlantUML 绘图时才请求配置的服务器，地址必须是该服务器的 `/png/~h` 十六进制图表路径；拒绝重定向，响应最多 16 MiB、15 秒。它用于保留不提供 CORS 的服务器的图片复制能力，不提供通用网络代理。
+
+## 页面与本地资源边界
+
+Windows 编辑器从 `https://editor.invalid/index.html` 加载打包的静态资源，开发配置只接受 `http://localhost:3000/`。原生消息必须同时匹配消息来源和当前页面的完整地址，不能只比较前缀；同文档的片段导航可用。打印预览只接受自己生成的临时 HTML 页面。
+
+本地图片通过单独的 `https://local-images.invalid/__local_image` 请求。只接受图片上下文的 GET 请求和绝对图片路径，拒绝脚本、框架、fetch、设备路径和备用数据流。响应声明图片 MIME、`nosniff` 和不缓存，并只允许编辑器来源的匿名图片请求读取像素，供 SVG 复制为 PNG；Markdown、HTML 导出和剪贴板保留原有的本地路径，不包含内部地址。浏览器的跨源及文件访问保护保持开启。
+
+本地图片同样最多 32 MiB、30 秒。本地和 HTTP 图片的原生读取总共最多并行四个，窗口关闭时取消等待及可取消的读取；UNC 文件的操作系统打开操作可能不会立即响应取消，但仍占用上述并行名额。
+
+HTTP 图片（包括 HTTP PlantUML 服务器的预览）通过同一隔离来源的 `/__http_image` 显示，避免 HTTPS 页面的混合内容限制。此入口同样只接受图片上下文，限制响应为图片或二进制内容、32 MiB、30 秒；重定向最多五次且只能到无凭据的 HTTP(S) 地址。它不提供 fetch/文本读取能力，导出和复制仍使用原始网络地址。
 
 ## 扩展协议
 
