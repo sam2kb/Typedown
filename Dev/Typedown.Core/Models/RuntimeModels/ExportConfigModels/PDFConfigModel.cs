@@ -16,7 +16,7 @@ namespace Typedown.Core.Models.ExportConfigModels
 
         public PrintOrientation Orientation { get; set; }
 
-        public PageSize PageSize { get; } = new();
+        public PageSize PageSize { get; } = new(new(Units.Inch, 8.5), new(Units.Inch, 11));
 
         public PageMargin Margins { get; } = new();
 
