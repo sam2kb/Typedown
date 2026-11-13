@@ -104,6 +104,12 @@ Open an [issue in this fork](https://github.com/sam2kb/Typedown/issues) with the
 
 For proposed changes, describe the intended behavior in an issue before opening a [pull request](https://github.com/sam2kb/Typedown/pulls). Discussions about flintt's builds belong in [flintt/Typedown](https://github.com/flintt/Typedown/issues); discussions about the original app belong in [byxiaozhi/Typedown](https://github.com/byxiaozhi/Typedown/issues).
 
+## Credits
+
+Thanks to [flintt](https://github.com/flintt) for maintaining and developing [flintt/Typedown](https://github.com/flintt/Typedown), the base for this fork. Its editor features, Windows app, themes, and local automation are inherited from that work.
+
+The original Typedown was created by [byxiaozhi](https://github.com/byxiaozhi/Typedown), and its Muya editor comes from [MarkText](https://github.com/marktext/marktext). The WebView virtual-host approach was informed by [awarson2233's Typedown changes](https://github.com/awarson2233/Typedown/commit/c251ca54fcac5e890e440937c6498225a920cd60).
+
 ## License
 
 MIT, under the upstream [license](LICENSE). The Muya editor comes from [MarkText](https://github.com/marktext/marktext) and is also MIT-licensed.
